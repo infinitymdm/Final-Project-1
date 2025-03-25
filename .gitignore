@@ -1,0 +1,2 @@
+# Ignore compiled PDFs (if you want to add a pdf, use `git add -f path/to/my.pdf`)
+*.pdf
