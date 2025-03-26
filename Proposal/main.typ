@@ -35,3 +35,5 @@ and test sets. We plan to use the same split.
 
 == Schedule
 
+- https://www.semanticscholar.org/reader/3e908e4f31d95b321729d6a2893cb2c7c0071908
+- https://art-jang.github.io/assets/pdf/kws.pdf
