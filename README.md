@@ -18,6 +18,22 @@ course.
 - `Final-Presentation` contains presentation slides
 - `Code` contains code used to implement and train the network
 
+## Dependencies
+
+To run the code in this repository, you'll need a few dependencies. We recommend setting up an
+isolated python environment with
+
+```sh
+python3 -m venv .venv # Create a virtual python environment called .venv
+source .venv/bin/activate # Activate the virtual environment
+```
+
+Then you can install the dependencies:
+
+```sh
+pip install datasets librosa sounddevice soundfile
+```
+
 ## Resources
 
 - [Typst Documentation](https://typst.app/docs)
