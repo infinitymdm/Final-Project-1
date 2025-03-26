@@ -1,4 +1,4 @@
-# ecen5060-final-x
+# ECEN5060 Final Project
 
 This repository contains code and documents for a deep network which identifies filler words in
 real-time speech audio. This network is designed as a course project in Dr. Hagan's Deep Learning
