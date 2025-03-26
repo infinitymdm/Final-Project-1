@@ -31,7 +31,7 @@ source .venv/bin/activate # Activate the virtual environment
 Then you can install the dependencies:
 
 ```sh
-pip install datasets soundfile librosa
+pip install datasets librosa sounddevice soundfile
 ```
 
 ## Resources
