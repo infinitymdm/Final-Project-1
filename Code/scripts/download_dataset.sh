@@ -16,5 +16,5 @@ fi
 # Unpack the dataset
 unzip PodcastFillers-full.zip
 
-# Move the whole dataset up one directory
-mv PodcastFillers ../.
+# Move the dataset into Code/data
+mv PodcastFillers ../data/.

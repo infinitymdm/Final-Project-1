@@ -1,8 +1,10 @@
 #! /usr/bin/env python3
 
+import numpy as np
+import matplotlib.pyplot as plt
 import pandas
 from pathlib import Path
-from torch.utils.data import Dataset, DataLoader
+import torch
 import torchaudio
 
 # Important constants, might need these in other files
@@ -21,7 +23,7 @@ def relabel_fillers_bool(annotation):
     return label in recognized_fillers
 
 
-class PodcastFillersDataset(Dataset):
+class PodcastFillersDataset(torch.utils.data.Dataset):
     '''
     Custom dataset for PodcastFillers labeled wav clips
 
@@ -69,5 +71,43 @@ class PodcastFillersDataset(Dataset):
             annotation = self.target_transform(annotation)
         return audio, annotation
 
+def plot_audio(audio, sample_rate=16000):
+    '''
+    Plot the waveform and spectrogram for an audio sample
+
+    Mostly copied from https://pytorch.org/audio/stable/tutorials/audio_io_tutorial.html#loading-audio-data
+    '''
+    waveform = audio.numpy()
+
+    num_channels, num_frames = waveform.shape
+    time_axis = torch.arange(0, num_frames) / sample_rate
+
+    # Set up subplots with waveforms above, spectrograms below
+    figure, axes = plt.subplots(2, num_channels, sharex=True)
+
+    # Plot by channel
+    for c in range(num_channels):
+        # Plot waveform
+        axes[c].plot(time_axis, waveform[c])
+        axes[c].grid()
+        if num_channels > 1:
+            axes[c].set_ylabel(f'Channel {c+1}')
+
+        # Plot spectrogram
+        axes[c+1].specgram(waveform[c], Fs=sample_rate)
 
 
+# If run as entry point, demo the dataset
+if __name__ == "__main__":
+    # Construct the dataset and set up a dataloader
+    pcf_root = Path('../data/PodcastFillers')
+    train_data = PodcastFillersDataset(pcf_root / 'metadata/PodcastFillers.csv', pcf_root / 'audio/clip_wav', split='train')
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=8, shuffle=True)
+
+    features, labels = next(iter(train_loader))
+    for i in range(8):
+        audio = features[i]
+        label = labels[i]
+        plot_audio(audio)
+        print(f'Label: {label}')
+        plt.show()
