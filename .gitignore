@@ -1,2 +1,8 @@
 # Ignore compiled PDFs (if you want to add a pdf, use `git add -f path/to/my.pdf`)
 *.pdf
+
+# Don't upload the whole dataset to the repo
+PodcastFillers
+
+# Ignore python cache
+__pycache__
