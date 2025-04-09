@@ -11,6 +11,9 @@ if [ ! -f "PodcastFillers-full.zip" ]; then
 
     # Assemble the files into a single record
     zip -FF PodcastFillers.zip --out PodcastFillers-full.zip
+
+    # Clean up downloaded zips
+    rm PodcastFillers.*
 fi
 
 # Unpack the dataset
