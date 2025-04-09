@@ -20,7 +20,7 @@ def relabel_fillers_bool(annotation):
     '''
     # Use consolidated vocab? No
     label = str(annotation['label_full_vocab']).lower()
-    return label in recognized_fillers
+    return 1*(label in recognized_fillers)
 
 
 class PodcastFillersDataset(torch.utils.data.Dataset):
@@ -63,12 +63,23 @@ class PodcastFillersDataset(torch.utils.data.Dataset):
         '''
         filename = str(self.annotations.iloc[index, 0]) # col 0 is 'clip_name'
         wav_file = self.wav_dir / filename
+
+        # Read audio & pad to 16000 samples if necessary
         audio, sample_rate = torchaudio.load(wav_file)
+        assert(sample_rate == 16000)
+        audio = torch.flatten(audio)
+        if len(audio) < 16000:
+            audio = torch.nn.functional.pad(audio, (0, 16000 - len(audio)), mode='constant', value=0)
+
+        # Read the annotations
         annotation = self.annotations.iloc[index, 1:] # use col 1 through end as annotations
+
+        # Apply transforms (if applicable)
         if self.transform:
-            audio, sample_rate = self.transform(audio, sample_rate)
+            audio = self.transform(audio)
         if self.target_transform:
             annotation = self.target_transform(annotation)
+
         return audio, annotation
 
 def plot_audio(audio, sample_rate=16000):
@@ -100,7 +111,7 @@ def plot_audio(audio, sample_rate=16000):
 # If run as entry point, demo the dataset
 if __name__ == "__main__":
     # Construct the dataset and set up a dataloader
-    pcf_root = Path('../data/PodcastFillers')
+    pcf_root = Path('data/PodcastFillers')
     train_data = PodcastFillersDataset(pcf_root / 'metadata/PodcastFillers.csv', pcf_root / 'audio/clip_wav', split='train')
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=8, shuffle=True)
 
