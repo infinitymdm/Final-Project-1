@@ -24,7 +24,6 @@ def train(model, train_data, loss_fn, optimizer, **hyperparams):
     num_epochs = hyperparams.get('num_epochs', 1)
     device = hyperparams.get('device', torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
     model.to(device)
-    model = torch.compile(model)
 
     # Each epoch, iterate over data
     for epoch in range(num_epochs):
@@ -33,13 +32,11 @@ def train(model, train_data, loss_fn, optimizer, **hyperparams):
         with tqdm(total=len(train_data), desc=f'Epoch {epoch}') as progress_bar:
             for i, batch in enumerate(train_data):
                 data, targets = batch
-                data.to(device)
-                targets.to(device)
 
                 # Perform one training step & calculate the gradient
                 optimizer.zero_grad()
-                predictions = model(data)
-                loss = loss_fn(predictions, targets)
+                predictions = model(data.to(device))
+                loss = loss_fn(predictions, targets.to(device))
                 loss.backward()
                 optimizer.step()
 
@@ -74,12 +71,10 @@ def test_fbeta(model, dataset, **hyperparams):
         with tqdm(total=len(test_data), desc='Testing') as progress_bar:
             for i, batch in enumerate(test_data):
                 data, targets = batch
-                data.to(device)
-                targets.to(device)
 
                 # Test on the batch of data and calculate fbeta score
-                predictions = model(data)
-                fbeta.update((predictions, targets))
+                predictions = model(data.to(device))
+                fbeta.update((predictions, targets.to(device)))
                 score = fbeta.compute()
 
                 # Show progress
@@ -110,20 +105,18 @@ if __name__ == "__main__":
     optimizer = opt_fn(model.parameters(), lr=learn_rate)
 
     # If loading a previous checkpoint, set ckpt_name to the filepath
-    ckpt_name = 'model_0.831.ckpt'
-    if Path(ckpt_name).exists():
-        checkpoint = torch.load(ckpt_name, weights_only=True)
-        model = model.load_state_dict(checkpoint['model'], strict=False)
-        optimizer = optimizer.load_state_dict(checkpoint['optimizer'])
+    ckpt_dir = Path('ckpt')
+    ckpt_name = ckpt_dir / '0.836.ckpt'
+    if ckpt_name.exists():
+        model = model.load_state_dict(torch.load(ckpt_name / 'model.pt', weights_only=True))
+        optimizer = optimizer.load_state_dict(torch.load(ckpt_name / 'optimizer.pt'))
 
-    # Train the model
+    # Train the model & evaluate results
     model, optimizer = train(model, train_data, loss_fn, optimizer, num_epochs=num_epochs)
-
-    # Test the model
     score = test_fbeta(model, test_data, beta=0.5)
 
     # Save a checkpoint
-    torch.save({
-        'model': model.state_dict(),
-        'optimizer': optimizer.state_dict()
-    }, f'model_{score:.3f}.ckpt')
+    ckpt_name = ckpt_dir / f'f{score:.3f}.ckpt'
+    ckpt_name.mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), ckpt_name / 'model.pt')
+    torch.save(optimizer.state_dict(), ckpt_name / 'optimizer.pt')
