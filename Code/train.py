@@ -91,6 +91,7 @@ if __name__ == "__main__":
     num_epochs = 1
     loss_fn = torch.nn.CrossEntropyLoss()
     opt_fn = torch.optim.Adam
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Initialize train and test datasets
     pcf_root = Path('data/PodcastFillers')
@@ -102,14 +103,17 @@ if __name__ == "__main__":
 
     # Initialize the model and optimizer
     model = FillerDetector()
+    model.to(device)
     optimizer = opt_fn(model.parameters(), lr=learn_rate)
 
     # If loading a previous checkpoint, set ckpt_name to the filepath
     ckpt_dir = Path('ckpt')
-    ckpt_name = ckpt_dir / '0.836.ckpt'
+    ckpt_name = ckpt_dir / 'f0.838.ckpt'
     if ckpt_name.exists():
-        model = model.load_state_dict(torch.load(ckpt_name / 'model.pt', weights_only=True))
-        optimizer = optimizer.load_state_dict(torch.load(ckpt_name / 'optimizer.pt'))
+        print(f'Loading model {ckpt_name} for continued training...')
+        model.load_state_dict(torch.load(ckpt_name / 'model.pt', weights_only=True))
+        model.to(device)
+        optimizer.load_state_dict(torch.load(ckpt_name / 'optimizer.pt'))
 
     # Train the model & evaluate results
     model, optimizer = train(model, train_data, loss_fn, optimizer, num_epochs=num_epochs)
