@@ -1,5 +1,7 @@
 #! /usr/bin/env sh
 
+set -e
+
 # Fetch and assemble the dataset if we don't have the full zip
 if [ ! -f "PodcastFillers-full.zip" ]; then
     # Download the files for PodcastFillers from the hosting service.
