@@ -116,12 +116,12 @@ if __name__ == "__main__":
     # Hyperparameters
     batch_size = 16
     learn_rate = 1e-3
-    num_epochs = 0
+    num_epochs = 50
     opt_fn = torch.optim.Adam
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # The custom loss weights punish false positives twice as much as false negatives so our detector is not likely to
     # constantly "ring the bell" by detecting a filler.
-    custom_loss_weights = torch.tensor([1.75, 1.0],device=device)
+    custom_loss_weights = torch.tensor([3.5, 1.0],device=device)
     loss_fn = torch.nn.CrossEntropyLoss(weight=custom_loss_weights)
 
     # Initialize train and test datasets
@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
     # If loading a previous checkpoint, set ckpt_name to the filepath
     ckpt_dir = Path('ckpt')
-    ckpt_name = ckpt_dir / 'f0.857_epoch8.ckpt'
+    ckpt_name = ckpt_dir / '0.ckt'#'f0.864_epoch47.ckpt'
     if ckpt_name.exists():
         print(f'Loading model {ckpt_name} for continued training...')
         model.load_state_dict(torch.load(ckpt_name / 'model.pt', weights_only=True))
