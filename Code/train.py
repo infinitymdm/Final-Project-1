@@ -10,9 +10,10 @@ from tqdm import tqdm
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, accuracy_score
 import pandas as pd
 from datetime import datetime
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
-def train(model, train_data, loss_fn, optimizer, intermediate_test=None, BCELoss=False, run_dir=Path(''), **hyperparams):
+def train(model, train_data, loss_fn, optimizer, scheduler=None, intermediate_test=None, run_dir=Path(''), **hyperparams):
     '''Return a model trained on the dataset using the specified hyperparameters.
 
     Arguments:
@@ -44,16 +45,12 @@ def train(model, train_data, loss_fn, optimizer, intermediate_test=None, BCELoss
             for i, batch in enumerate(train_data):
                 data, targets = batch
 
-                if BCELoss:
-                    targets = targets.float().unsqueeze(1).to(device)
+                targets = targets.float().to(device).view(-1)
 
                 # Perform one training step & calculate the gradient
                 optimizer.zero_grad()
                 predictions = model(data.to(device))
-                if BCELoss:
-                    loss = CustomBCE(predictions, targets)
-                else:
-                    loss = loss_fn(predictions, targets.to(device))
+                loss = loss_fn(predictions, targets.to(device))
                 loss.backward()
                 optimizer.step()
 
@@ -65,6 +62,9 @@ def train(model, train_data, loss_fn, optimizer, intermediate_test=None, BCELoss
         # Save the best performing (f-0.5 score) model at intermediate steps
         if intermediate_test is not None:
             f05, _, acc, prec, rec = test_metrics(model, intermediate_test, beta=beta, device=device)
+
+            if scheduler is not None:
+                scheduler.step(f05)
 
             ckpt_name = run_dir / f'f{f05:.3f}_epoch{epoch}'
             ckpt_name.mkdir(parents=True, exist_ok=True)
@@ -88,18 +88,19 @@ def train(model, train_data, loss_fn, optimizer, intermediate_test=None, BCELoss
 
     return model, optimizer
 
+# AA: This is a legacy method for tracking changes in the script. I do not recommend using as it can make large negative losses that destabilize training.
 def CustomBCE(logits, targets, fp_weight=1.0,fn_weight=1.0):
     probs = torch.sigmoid(logits)
     eps = 1e-6
     loss = -((fn_weight * targets * torch.log(probs + eps)) + (fp_weight * (1 - targets) * torch.log(1 - probs + eps)))
     return loss.mean()
 
-def test_metrics(model, dataset, **hyperparams):
+def test_metrics(model, test_data, **hyperparams):
     '''Test a model on the given dataset and return the fbeta score, precision, recall, and accuracy.
 
         Arguments:
             model:      a torch.nn.Module to be tested
-            dataset:    a torch.utils.data.DataLoader to be sampled for test data and labels
+            test_data:    a torch.utils.data.DataLoader to be sampled for test data and labels
 
         Keyword arguments:
             beta:       (defaults to 1)
@@ -107,7 +108,7 @@ def test_metrics(model, dataset, **hyperparams):
             threshold:  (defaults to 0.5)
         '''
     device = hyperparams.get('device', torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
-    beta = hyperparams.get('beta', 1)
+    beta = hyperparams.get('beta', 0.5)
     threshold = hyperparams.get('threshold', 0.5)
 
     # Initialize the fbeta metric to average over the test dataset
@@ -200,8 +201,8 @@ if __name__ == "__main__":
 
     # Hyperparameters
     batch_size = 16
-    learn_rate = 1e-3
-    num_epochs = 1
+    learn_rate = 1e-3 # For CEL this rate works well
+    num_epochs = 50
     opt_fn = torch.optim.Adam
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # The custom loss weights punish false positives twice as much as false negatives so our detector is not likely to
@@ -209,8 +210,13 @@ if __name__ == "__main__":
     # A value of 1.5 in the weight does slightly improve the false positive rate, but over many epochs can actually start to do the opposite
     # A value of 3.5 in the weight greatly reduces the false positive rate at the cost of doubling the false negative rate
     # Values in between are some combination of the two tradeoffs. The best performance so far has led to 1/8 positives are false and 1/7 negatives are false
+    '''
+    # loss weights for a CEL setup
     custom_loss_weights = torch.tensor([3.5, 1.0],device=device)
     loss_fn = torch.nn.CrossEntropyLoss(weight=custom_loss_weights)
+    '''
+    pos_weight = torch.tensor([0.625], device=device)
+    loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
     # Initialize train and test datasets
     pcf_root = Path('data/PodcastFillers')
@@ -225,9 +231,14 @@ if __name__ == "__main__":
     model.to(device)
     optimizer = opt_fn(model.parameters(), lr=learn_rate)
 
+    # Include a learning rate scheduler to help training be more focused on the f0.5 score
+    # (or other metric the gradient cannot directly train to)
+    # by reducing learning rate if we don't improve target metric often
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', patience=2, factor=0.33, verbose=True)
+
     # If loading a previous checkpoint, set ckpt_name to the filepath
     ckpt_dir = Path('ckpt')
-    ckpt_name = ckpt_dir / '0.ckt'#'f0.864_epoch47.ckpt'
+    ckpt_name = ckpt_dir / '0.ckpt'
     if ckpt_name.exists():
         print(f'Loading model {ckpt_name} for continued training...')
         model.load_state_dict(torch.load(ckpt_name / 'model.pt', weights_only=True))
@@ -235,8 +246,8 @@ if __name__ == "__main__":
         optimizer.load_state_dict(torch.load(ckpt_name / 'optimizer.pt'))
 
     # Train the model & evaluate results
-    model, optimizer = train(model, train_data, loss_fn, optimizer, intermediate_test=test_data, BCELoss=True, run_dir=run_dir, num_epochs=num_epochs)
-    score, cm, _, _, _ = test_metrics(model, test_data)
+    model, optimizer = train(model, train_data, loss_fn, optimizer, scheduler=lr_scheduler, intermediate_test=test_data, run_dir=run_dir, num_epochs=num_epochs)
+    score, cm, _, _, _ = test_metrics(model, test_data, beta=0.5)
     #print(model)
     print(f"F0.5 Score: {score:.5f}")
     print(pd.DataFrame(
