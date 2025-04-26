@@ -3,6 +3,7 @@
 
 # Don't upload the whole dataset to the repo
 PodcastFillers
+*.zip
 
 # Ignore python cache
 __pycache__
