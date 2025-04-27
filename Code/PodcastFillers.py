@@ -6,6 +6,7 @@ import pandas
 from pathlib import Path
 import torch
 import torchaudio
+import random
 
 # Important constants, might need these in other files
 recognized_fillers = {'uh', 'um', 'you know', 'other', 'like'}
@@ -30,7 +31,7 @@ class PodcastFillersDataset(torch.utils.data.Dataset):
     Based on https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#creating-a-custom-dataset-for-your-files
     '''
 
-    def __init__(self, annotations_csv: str, wav_dir: str, split: str, transform=None, target_transform=relabel_fillers_bool):
+    def __init__(self, annotations_csv: str, wav_dir: str, split: str, transform=None, target_transform=relabel_fillers_bool, max_shift=1600):
         '''
         Construct the dataset
 
@@ -40,12 +41,15 @@ class PodcastFillersDataset(torch.utils.data.Dataset):
             split (str): which split to use (extra, test, train, validation)
             transform (callable): a transformation to apply to audio data (defaults to none)
             target_transform (callable): a transformation to apply to target labels (defaults to relabeling "filler/nonfiller")
+            max_shift (int): the maximum shift to apply to the clip (defaults to 1600) to avoid all fillers being in the exact middle
         '''
         unsplit_annotations = pandas.read_csv(annotations_csv)
         self.annotations = unsplit_annotations[unsplit_annotations['clip_split_subset'] == split]
         self.wav_dir = Path(wav_dir) / split
         self.transform = transform
         self.target_transform = target_transform
+        self.max_shift = max_shift
+        self.split = split
 
     def __len__(self):
         '''
@@ -71,6 +75,9 @@ class PodcastFillersDataset(torch.utils.data.Dataset):
         if len(audio) < 16000:
             audio = torch.nn.functional.pad(audio, (0, 16000 - len(audio)), mode='constant', value=0)
 
+        if self.split == 'train':
+            audio = self.random_shift_audio(audio)
+
         # Read the annotations
         annotation = self.annotations.iloc[index, 1:] # use col 1 through end as annotations
 
@@ -81,6 +88,27 @@ class PodcastFillersDataset(torch.utils.data.Dataset):
             annotation = self.target_transform(annotation)
 
         return audio, annotation
+
+    def random_shift_audio(self, audio):
+        """
+        This cuts some audio from the front or back of the audio to force fillers to not be in the exact middle of samples.
+        """
+        shift = random.randint(-self.max_shift, self.max_shift)
+
+        # The random value is between -max_shift and max_shift negative values pad the end and cuts audio from the front
+        # the positive values pad the start and cut audio off the end.
+        if shift > 0:
+            audio = torch.cat([
+                torch.zeros(shift, dtype=audio.dtype),
+                audio
+            ])[:16000]
+        elif shift < 0:
+            audio = torch.cat([
+                audio[-shift:],
+                torch.zeros(-shift, dtype=audio.dtype)
+            ])[:16000]
+
+        return audio
 
 def plot_audio(audio, sample_rate=16000):
     '''

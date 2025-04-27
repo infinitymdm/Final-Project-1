@@ -27,6 +27,7 @@ def train(model, train_data, loss_fn, optimizer, scheduler=None, intermediate_te
         num_epochs: (defaults to 1)
         device:     (defaults to cuda if available)
         beta:       (defaults to 1)
+        patience:     (defaults to 5)
     '''
     num_epochs = hyperparams.get('num_epochs', 1)
     device = hyperparams.get('device', torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
@@ -36,6 +37,11 @@ def train(model, train_data, loss_fn, optimizer, scheduler=None, intermediate_te
     best_score = 0.0
     beta = hyperparams.get('beta', 0.5)
     epoch_metrics = []
+
+    # Early stopping variables. If no improvements occur in 5 epochs, the training stops early to avoid wasted training.
+    no_change = 0
+    patience = hyperparams.get('patience', 8)
+
 
     # Each epoch, iterate over data
     for epoch in range(num_epochs):
@@ -73,7 +79,10 @@ def train(model, train_data, loss_fn, optimizer, scheduler=None, intermediate_te
 
             if f05 > best_score:
                 best_score = f05
+                no_change = 0
                 print(f"New best score: {best_score:.3f} saved to {ckpt_name}")
+            else:
+                no_change += 1
 
             epoch_metrics.append({
                 "epoch": epoch,
@@ -82,6 +91,10 @@ def train(model, train_data, loss_fn, optimizer, scheduler=None, intermediate_te
                 "recall": rec,
                 "f0.5": f05
             })
+
+            if no_change >= patience:
+                print(f"Early stopping at epoch {epoch} — no improvement in {patience} epochs.")
+                break
 
     df_metrics = pd.DataFrame(epoch_metrics)
     df_metrics.to_csv(run_dir / "metrics.csv", index=False)
@@ -222,9 +235,10 @@ if __name__ == "__main__":
     pcf_root = Path('data/PodcastFillers')
     pcf_csv = pcf_root / 'metadata' / 'PodcastFillers.csv'
     pcf_wav_dir = pcf_root / 'audio' / 'clip_wav'
-    pcf_dataset = lambda s: PodcastFillersDataset(pcf_csv, pcf_wav_dir, split=s)
+    pcf_dataset = lambda s: PodcastFillersDataset(pcf_csv, pcf_wav_dir, split=s, max_shift=2400)
     train_data = DataLoader(pcf_dataset('train'), batch_size=batch_size, shuffle=True)
     test_data = DataLoader(pcf_dataset('test'), batch_size=batch_size)
+    val_data = DataLoader(pcf_dataset('validation'), batch_size=batch_size, shuffle=True)
 
     # Initialize the model and optimizer
     model = FillerDetector(out_dim=1)
@@ -234,7 +248,7 @@ if __name__ == "__main__":
     # Include a learning rate scheduler to help training be more focused on the f0.5 score
     # (or other metric the gradient cannot directly train to)
     # by reducing learning rate if we don't improve target metric often
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', patience=2, factor=0.33, verbose=True)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', patience=2, factor=0.33, verbose=False)
 
     # If loading a previous checkpoint, set ckpt_name to the filepath
     ckpt_dir = Path('ckpt')
@@ -246,7 +260,7 @@ if __name__ == "__main__":
         optimizer.load_state_dict(torch.load(ckpt_name / 'optimizer.pt'))
 
     # Train the model & evaluate results
-    model, optimizer = train(model, train_data, loss_fn, optimizer, scheduler=lr_scheduler, intermediate_test=test_data, run_dir=run_dir, num_epochs=num_epochs)
+    model, optimizer = train(model, train_data, loss_fn, optimizer, scheduler=lr_scheduler, intermediate_test=val_data, run_dir=run_dir, num_epochs=num_epochs, patience=10)
     score, cm, _, _, _ = test_metrics(model, test_data, beta=0.5)
     #print(model)
     print(f"F0.5 Score: {score:.5f}")
