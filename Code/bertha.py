@@ -4,17 +4,18 @@ from FillerDetector import FillerDetector
 from audio_utils import audiostream
 import argparse
 import asyncio
-import sys
 import torch
 
 async def classify_audiostream(classifier, torch_device, threshold=0.5, **kwargs):
     '''Asynchronous task to sample & classify audiostream data as it arrives'''
     print('Waiting for filler words...')
+    filler_count = 0
     async for audio, _ in audiostream(**kwargs):
         data = torch.unsqueeze(torch.flatten(torch.from_numpy(audio)), 0)
         outputs = classifier(data.to(torch_device))
         is_filler = float(outputs) > threshold
-        print('Filler detected!') if is_filler else None
+        filler_count += is_filler
+        print(f'Filler detected! (total: {filler_count})') if is_filler else None
 
 if __name__ == "__main__":
     # Parse arguments from command line
@@ -37,9 +38,9 @@ if __name__ == "__main__":
         try:
             await asyncio.wait_for(classify_audiostream(classifier, torch_device, args.threshold, blocksize=16000, samplerate=16000), timeout=timeout)
         except asyncio.TimeoutError:
-            pass
+            print('Timeout reached. Thank you for using BERTHA!')
 
     try:
         asyncio.run(classify_loop(args.runtime))
     except KeyboardInterrupt:
-        sys.exit('\nThank you for using BERTHA! Exiting...')
+        print('Keyboard interrupt detected. Thank you for using BERTHA!')
