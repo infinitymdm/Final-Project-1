@@ -228,7 +228,7 @@ if __name__ == "__main__":
     custom_loss_weights = torch.tensor([3.5, 1.0],device=device)
     loss_fn = torch.nn.CrossEntropyLoss(weight=custom_loss_weights)
     '''
-    pos_weight = torch.tensor([0.625], device=device)
+    pos_weight = torch.tensor([0.75], device=device)
     loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
     # Initialize train and test datasets
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     # Include a learning rate scheduler to help training be more focused on the f0.5 score
     # (or other metric the gradient cannot directly train to)
     # by reducing learning rate if we don't improve target metric often
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', patience=2, factor=0.33, verbose=False)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', patience=2, factor=0.33)
 
     # If loading a previous checkpoint, set ckpt_name to the filepath
     ckpt_dir = Path('ckpt')
@@ -259,10 +259,12 @@ if __name__ == "__main__":
         model.to(device)
         optimizer.load_state_dict(torch.load(ckpt_name / 'optimizer.pt'))
 
+    # Print the model structure
+    #print(model)
+
     # Train the model & evaluate results
     model, optimizer = train(model, train_data, loss_fn, optimizer, scheduler=lr_scheduler, intermediate_test=val_data, run_dir=run_dir, num_epochs=num_epochs, patience=10)
     score, cm, _, _, _ = test_metrics(model, test_data, beta=0.5)
-    #print(model)
     print(f"F0.5 Score: {score:.5f}")
     print(pd.DataFrame(
         cm,

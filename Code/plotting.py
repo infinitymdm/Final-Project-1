@@ -4,7 +4,7 @@ from pathlib import Path
 
 # ------------------ CONFIG ------------------
 # Set the run directory where "metrics.csv" was saved
-run_dir = Path("ckpt/2025-04-25_01-03")
+run_dir = Path("ckpt/2025-04-27_22-00")
 metrics_csv = run_dir / "metrics.csv"
 
 # ------------------ LOAD DATA ------------------
