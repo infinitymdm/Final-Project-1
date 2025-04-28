@@ -4,12 +4,18 @@ import torchaudio.pipelines as pipelines
 import torch.nn as nn
 
 class FillerDetector(nn.Module):
-    def __init__(self, bundle=pipelines.WAV2VEC2_BASE, out_dim=2, train_transfer_model=False):
+    def __init__(self, bundle=pipelines.WAV2VEC2_BASE, out_dim=2, train_transfer_model=False, hidden_dim=256):
         super().__init__()
         self.transfer_model = bundle.get_model()
         self.train_transfer_model(train_transfer_model)
         classifier_in_dim = bundle._params['encoder_embed_dim']
-        self.classifier = nn.Linear(classifier_in_dim, out_dim)
+        self.classifier = nn.Sequential(
+            nn.Linear(classifier_in_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(0.25),
+            nn.Linear(hidden_dim, out_dim)
+        )
+        #self.classifier = nn.Linear(classifier_in_dim, out_dim)
 
     def train_transfer_model(self, enable):
         '''Whether to train the parameters of the transfer model.
