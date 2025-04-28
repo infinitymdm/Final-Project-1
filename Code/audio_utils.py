@@ -14,6 +14,7 @@ async def audiostream(channels=1, **kwargs):
     def callback(data, frame_count, time_info, status):
         loop.call_soon_threadsafe(q_in.put_nowait, (data.copy(), status))
 
+    sd.default.device = 'Blue Snowball: USB Audio'
     stream = sd.InputStream(callback=callback, channels=channels, **kwargs)
     with stream:
         while True:
