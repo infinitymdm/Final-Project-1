@@ -13,7 +13,7 @@ async def classify_audiostream(classifier, torch_device, threshold=0.5, **kwargs
     async for audio, _ in audiostream(**kwargs):
         data = torch.unsqueeze(torch.flatten(torch.from_numpy(audio)), 0)
         outputs = classifier(data.to(torch_device))
-        probs = torch.sigmoid(outputs).view(-1).cpu().numpy()
+        probs = torch.sigmoid(outputs).view(-1).detach().numpy()
         is_filler = float(probs) > threshold
         filler_count += is_filler
         print(f'Filler detected! (total: {filler_count})') if is_filler else None
