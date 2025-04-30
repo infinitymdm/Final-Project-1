@@ -6,10 +6,9 @@ course.
 
 ## Overview
 
-- Given live speech input, the network should indicate if the last few seconds (ish?) of audio contained a filler word
-- Trained on the [TED-LIUM dataset](https://huggingface.co/datasets/LIUM/tedlium)
-- We'll need to select a network architecture that has memory (recurrent, LSTM, autoencoder, transformer, etc.)
-- We'll need to decide on performance metrics, but at the end of the day we probably want a higher FN rate than FP
+- Given live speech input, detects filler words and provides real-time feedback with upwards of 90% accuracy
+- Trained on the [PodcastFillers](https://podcastfillers.github.io/) dataset
+- Multiple trained models with adjustable detection thresholds
 
 ## Organization
 
@@ -31,10 +30,9 @@ source .venv/bin/activate # Activate the virtual environment
 Then you can install the dependencies:
 
 ```sh
-pip install datasets librosa sounddevice soundfile
+pip install matplotlib numpy pandas pytorch-ignite scikit-learn sounddevice torchaudio tqdm
 ```
 
-## Resources
+## Running the Code
 
-- [Typst Documentation](https://typst.app/docs)
-- [TED-LIUM dataset](https://huggingface.co/datasets/LIUM/tedlium)
+After cloning the repository, run `bertha.py -h` from the Code directory to view usage information.
