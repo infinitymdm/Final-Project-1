@@ -92,8 +92,8 @@ if __name__ == "__main__":
 
     # If loading a previous checkpoint, set ckpt_name to the filepath
     ckpt_dir = Path('ckpt')
-    ckpt_dir = ckpt_dir / '2025-04-27_22-00'
-    ckpt_name = ckpt_dir / 'f0.889_epoch16'
+    ckpt_dir = ckpt_dir / '2025-04-27_20-47'
+    ckpt_name = ckpt_dir / 'f0.893_epoch15'
     if ckpt_name.exists():
         print(f'Loading model {ckpt_name} for continued training...')
         model.load_state_dict(torch.load(ckpt_name / 'model.pt', weights_only=True))
