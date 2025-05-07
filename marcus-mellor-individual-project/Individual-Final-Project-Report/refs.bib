@@ -1,0 +1,113 @@
+@misc{baevski_wav2vec_2020,
+	title = {wav2vec 2.0: {A} {Framework} for {Self}-{Supervised} {Learning} of {Speech} {Representations}},
+	shorttitle = {wav2vec 2.0},
+	url = {http://arxiv.org/abs/2006.11477},
+	doi = {10.48550/arXiv.2006.11477},
+	abstract = {We show for the first time that learning powerful representations from speech audio alone followed by fine-tuning on transcribed speech can outperform the best semi-supervised methods while being conceptually simpler. wav2vec 2.0 masks the speech input in the latent space and solves a contrastive task defined over a quantization of the latent representations which are jointly learned. Experiments using all labeled data of Librispeech achieve 1.8/3.3 WER on the clean/other test sets. When lowering the amount of labeled data to one hour, wav2vec 2.0 outperforms the previous state of the art on the 100 hour subset while using 100 times less labeled data. Using just ten minutes of labeled data and pre-training on 53k hours of unlabeled data still achieves 4.8/8.2 WER. This demonstrates the feasibility of speech recognition with limited amounts of labeled data.},
+	urldate = {2025-04-29},
+	publisher = {arXiv},
+	author = {Baevski, Alexei and Zhou, Henry and Mohamed, Abdelrahman and Auli, Michael},
+	month = oct,
+	year = {2020},
+	note = {arXiv:2006.11477 [cs]},
+	keywords = {Computer Science - Machine Learning, Computer Science - Computation and Language, Computer Science - Sound, Electrical Engineering and Systems Science - Audio and Speech Processing},
+	file = {Full Text PDF:C\:\\Users\\andre\\Zotero\\storage\\URBR5FSZ\\Baevski et al. - 2020 - wav2vec 2.0 A Framework for Self-Supervised Learn.pdf:application/pdf;Snapshot:C\:\\Users\\andre\\Zotero\\storage\\QV783KC4\\2006.html:text/html},
+}
+
+@inbook{tedlium_2018,
+   title={TED-LIUM 3: Twice as Much Data and Corpus Repartition for Experiments on Speaker Adaptation},
+   ISBN={9783319995793},
+   ISSN={1611-3349},
+   url={http://dx.doi.org/10.1007/978-3-319-99579-3_21},
+   DOI={10.1007/978-3-319-99579-3_21},
+   booktitle={Speech and Computer},
+   publisher={Springer International Publishing},
+   author={Hernandez, François and Nguyen, Vincent and Ghannay, Sahar and Tomashenko, Natalia and Estève, Yannick},
+   year={2018},
+   pages={198–208}
+}
+
+@inproceedings{podcastfillers_2022,
+  title = {Filler Word Detection and Classification: A Dataset and Benchmark},
+  booktitle = {23rd Annual Cong.~of the Int.~Speech Communication Association (INTERSPEECH)},
+  address = {Incheon, Korea}, 
+  month = {Sep.},
+  url = {https://arxiv.org/abs/2203.15135},
+  author = {Zhu, Ge and Caceres, Juan-Pablo and Salamon, Justin},
+  year = {2022},
+}
+
+@misc{toastmasters,
+  title={Toastmasters Club Meeting Roles},
+  url={https://www.toastmasters.org/membership/club-meeting-roles},
+  journal={Toastmasters International},
+  publisher={Toastmasters International}
+} 
+
+
+@misc{noauthor_crossentropyloss_nodate,
+	title = {{CrossEntropyLoss} — {PyTorch} 2.7 documentation},
+	url = {https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html},
+	urldate = {2025-05-05},
+	file = {CrossEntropyLoss — PyTorch 2.7 documentation:C\:\\Users\\andre\\Zotero\\storage\\J7XAJJFY\\torch.nn.CrossEntropyLoss.html:text/html},
+}
+
+@misc{clueless_using_2021,
+	type = {Forum post},
+	title = {Using weights in {CrossEntropyLoss} and {BCELoss} ({PyTorch})},
+	url = {https://stackoverflow.com/q/67730325},
+	urldate = {2025-04-24},
+	journal = {Stack Overflow},
+	author = {clueless},
+	month = may,
+	year = {2021},
+	file = {Snapshot:C\:\\Users\\andre\\Zotero\\storage\\ZMBISKLI\\using-weights-in-crossentropyloss-and-bceloss-pytorch.html:text/html},
+}
+
+@misc{vuurens_answer_2021,
+	title = {Answer to "{Using} weights in {CrossEntropyLoss} and {BCELoss} ({PyTorch})"},
+	url = {https://stackoverflow.com/a/67778392},
+	urldate = {2025-04-24},
+	journal = {Stack Overflow},
+	author = {Vuurens, Jeroen},
+	month = may,
+	year = {2021},
+	file = {Snapshot:C\:\\Users\\andre\\Zotero\\storage\\5DNJDWEQ\\using-weights-in-crossentropyloss-and-bceloss-pytorch.html:text/html},
+}
+
+@misc{noauthor_bceloss_nodate,
+	title = {{BCELoss} — {PyTorch} 2.7 documentation},
+	url = {https://pytorch.org/docs/stable/generated/torch.nn.BCELoss.html},
+	urldate = {2025-05-05},
+	file = {BCELoss — PyTorch 2.7 documentation:C\:\\Users\\andre\\Zotero\\storage\\A6QQAMGB\\torch.nn.BCELoss.html:text/html},
+}
+
+@misc{noauthor_bceloss_2024,
+	title = {{BCELoss} with class weights - vision},
+	url = {https://discuss.pytorch.org/t/bceloss-with-class-weights/196991},
+	abstract = {I’m doing an image segmentation task. It’s a binary case. That is, the target pixels are either 0 (not of the class) or 1 (belong to the class).  I’m using BCELoss as the loss function. I’m using BCE instead of BCEWithLogits because my model already has a sigmoid at the end.  My dataset is quite unbalanced. Of all the pixels, only a small percentage belong to the target class. Hence, I’d like to use class weights.  I’ve tried to do this:  class\_weights = torch.tensor([0.5, 74.0]) criterion = nn....},
+	language = {en},
+	urldate = {2025-04-23},
+	journal = {PyTorch Forums},
+	month = feb,
+	year = {2024},
+	note = {Section: vision},
+	file = {Snapshot:C\:\\Users\\andre\\Zotero\\storage\\J32ITM4K\\196991.html:text/html},
+}
+
+@misc{noauthor_bcewithlogitsloss_nodate,
+	title = {{BCEWithLogitsLoss} — {PyTorch} 2.7 documentation},
+	url = {https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html},
+	urldate = {2025-05-05},
+	file = {BCEWithLogitsLoss — PyTorch 2.7 documentation:C\:\\Users\\andre\\Zotero\\storage\\DQRGAPJ9\\torch.nn.BCEWithLogitsLoss.html:text/html},
+}
+
+@misc{noauthor_precision_recall_curve_nodate,
+	title = {precision\_recall\_curve},
+	url = {https://scikit-learn/stable/modules/generated/sklearn.metrics.precision_recall_curve.html},
+	abstract = {Gallery examples: Visualizations with Display Objects Precision-Recall},
+	language = {en},
+	urldate = {2025-05-06},
+	journal = {scikit-learn},
+	file = {Snapshot:C\:\\Users\\andre\\Zotero\\storage\\4QA3KEDR\\sklearn.metrics.precision_recall_curve.html:text/html},
+}
