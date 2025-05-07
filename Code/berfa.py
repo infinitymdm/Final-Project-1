@@ -21,12 +21,12 @@ async def classify_audiostream(classifier, torch_device, threshold=0.5, **kwargs
 if __name__ == "__main__":
     # Parse arguments from command line
     parser = argparse.ArgumentParser(
-        prog='bertha',
-        description='Binary Estimator for Robust Temporal Hesitation Analysis'
+        prog='berfa',
+        description='Binary Estimator for Robust Filler Analysis'
     )
     parser.add_argument('model', help='path to model weights')
     parser.add_argument('-t', '--threshold', default=0.5, help='classifier decision threshold (1=filler)', type=float)
-    parser.add_argument('-r', '--runtime', default=60, help='number of seconds the program should run', type=int)
+    parser.add_argument('-r', '--runtime', default=1e6, help='number of seconds the program should run', type=int)
     args = parser.parse_args()
 
     # Load the classifier model
@@ -39,9 +39,9 @@ if __name__ == "__main__":
         try:
             await asyncio.wait_for(classify_audiostream(classifier, torch_device, args.threshold, blocksize=16000, samplerate=16000), timeout=timeout)
         except asyncio.TimeoutError:
-            print('Timeout reached. Thank you for using BERTHA!')
+            print('Timeout reached. Thank you for using BERFA!')
 
     try:
         asyncio.run(classify_loop(args.runtime))
     except KeyboardInterrupt:
-        print('Keyboard interrupt detected. Thank you for using BERTHA!')
+        print('Keyboard interrupt detected. Thank you for using BERFA!')
